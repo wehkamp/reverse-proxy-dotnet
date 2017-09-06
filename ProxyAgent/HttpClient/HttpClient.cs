@@ -90,7 +90,6 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
                 SetHeaders(request, httpRequest);
 
                 this.log.Debug(
-                    request.Headers.CorrelationId,
                     "Sending request",
                     () => new { httpMethod, request.Uri, request.Options });
 
@@ -126,10 +125,7 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
                         errorMessage += " - " + e.InnerException.Message;
                     }
 
-                    this.log.Error(
-                        request.Headers.CorrelationId,
-                        "Request failed",
-                        () => new { errorMessage, e });
+                    this.log.Error("Request failed", () => new { errorMessage, e });
 
                     return new HttpResponse
                     {
@@ -139,9 +135,7 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
                 }
                 catch (TaskCanceledException e)
                 {
-                    this.log.Error(
-                        request.Headers.CorrelationId,
-                        "Request failed",
+                    this.log.Error("Request failed",
                         () => new
                         {
                             Message = e.Message +
@@ -158,10 +152,7 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
                 }
                 catch (Exception e)
                 {
-                    this.log.Error(
-                        request.Headers.CorrelationId,
-                        "Request failed",
-                        () => new { e.Message, e });
+                    this.log.Error("Request failed", () => new { e.Message, e });
 
                     return new HttpResponse
                     {

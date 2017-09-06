@@ -72,10 +72,9 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy
         {
             var logger = container.Resolve<ILogger>();
             var config = container.Resolve<IConfig>();
-            logger.Info(
-                null, "Proxy agent started", () => new { Uptime.ProcessId });
-            logger.Info(null, "Remote endpoint: " + config.Endpoint, () => { });
-            logger.Info(null, "Max payload size: " + config.MaxPayloadSize, () => { });
+            logger.Info("Proxy agent started", () => new { Uptime.ProcessId });
+            logger.Info("Remote endpoint: " + config.Endpoint, () => { });
+            logger.Info("Max payload size: " + config.MaxPayloadSize, () => { });
         }
     }
 }

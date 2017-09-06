@@ -19,24 +19,26 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics
         // The following 4 methods allow to log a message, capturing the context
         // (i.e. the method where the log message is generated)
 
-        void Debug(string correlationId, string message, Action context);
-        void Info(string correlationId, string message, Action context);
-        void Warn(string correlationId, string message, Action context);
-        void Error(string correlationId, string message, Action context);
+        void Debug(string message, Action context);
+        void Info(string message, Action context);
+        void Warn(string message, Action context);
+        void Error(string message, Action context);
 
         // The following 4 methods allow to log a message and some data,
         // capturing the context (i.e. the method where the log message is generated)
 
-        void Debug(string correlationId, string message, Func<object> context);
-        void Info(string correlationId, string message, Func<object> context);
-        void Warn(string correlationId, string message, Func<object> context);
-        void Error(string correlationId, string message, Func<object> context);
+        void Debug(string message, Func<object> context);
+        void Info(string message, Func<object> context);
+        void Warn(string message, Func<object> context);
+        void Error(string message, Func<object> context);
     }
 
     public class Logger : ILogger
     {
         private readonly string processId;
         private readonly LogLevel loggingLevel;
+
+        public string CorrelationId { get; set; }
 
         public Logger(string processId, LogLevel loggingLevel)
         {
@@ -46,82 +48,70 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics
 
         // The following 4 methods allow to log a message, capturing the context
         // (i.e. the method where the log message is generated)
-        public void Debug(string correlationId, string message, Action context)
+        public void Debug(string message, Action context)
         {
             if (this.loggingLevel > LogLevel.Debug) return;
-            this.Write(correlationId, "DEBUG", context.GetMethodInfo(), message);
+            this.Write(CorrelationId, "DEBUG", context.GetMethodInfo(), message);
         }
 
-        public void Info(string correlationId, string message, Action context)
+        public void Info(string message, Action context)
         {
             if (this.loggingLevel > LogLevel.Info) return;
-            this.Write(correlationId, "INFO", context.GetMethodInfo(), message);
+            this.Write(CorrelationId, "INFO", context.GetMethodInfo(), message);
         }
 
-        public void Warn(string correlationId, string message, Action context)
+        public void Warn(string message, Action context)
         {
             if (this.loggingLevel > LogLevel.Warn) return;
-            this.Write(correlationId, "WARN", context.GetMethodInfo(), message);
+            this.Write(CorrelationId, "WARN", context.GetMethodInfo(), message);
         }
 
-        public void Error(string correlationId, string message, Action context)
+        public void Error(string message, Action context)
         {
             if (this.loggingLevel > LogLevel.Error) return;
-            this.Write(correlationId, "ERROR", context.GetMethodInfo(), message);
+            this.Write(CorrelationId, "ERROR", context.GetMethodInfo(), message);
         }
 
         // The following 4 methods allow to log a message and some data,
         // capturing the context (i.e. the method where the log message is generated)
-        public void Debug(
-            string correlationId,
-            string message,
-            Func<object> context)
+        public void Debug(string message, Func<object> context)
         {
             if (this.loggingLevel > LogLevel.Debug) return;
 
             if (!string.IsNullOrEmpty(message)) message += ", ";
             message += Serialization.Serialize(context.Invoke());
 
-            this.Write(correlationId, "DEBUG", context.GetMethodInfo(), message);
+            this.Write(CorrelationId, "DEBUG", context.GetMethodInfo(), message);
         }
 
-        public void Info(
-            string correlationId,
-            string message,
-            Func<object> context)
+        public void Info(string message, Func<object> context)
         {
             if (this.loggingLevel > LogLevel.Info) return;
 
             if (!string.IsNullOrEmpty(message)) message += ", ";
             message += Serialization.Serialize(context.Invoke());
 
-            this.Write(correlationId, "INFO", context.GetMethodInfo(), message);
+            this.Write(CorrelationId, "INFO", context.GetMethodInfo(), message);
         }
 
-        public void Warn(
-            string correlationId,
-            string message,
-            Func<object> context)
+        public void Warn(string message, Func<object> context)
         {
             if (this.loggingLevel > LogLevel.Warn) return;
 
             if (!string.IsNullOrEmpty(message)) message += ", ";
             message += Serialization.Serialize(context.Invoke());
 
-            this.Write(correlationId, "WARN", context.GetMethodInfo(), message);
+            this.Write(CorrelationId, "WARN", context.GetMethodInfo(), message);
         }
 
-        public void Error(
-            string correlationId,
-            string message,
-            Func<object> context)
+        public void Error(string message, Func<object> context)
         {
             if (this.loggingLevel > LogLevel.Error) return;
 
             if (!string.IsNullOrEmpty(message)) message += ", ";
             message += Serialization.Serialize(context.Invoke());
 
-            this.Write(correlationId, "ERROR", context.GetMethodInfo(), message);
+            this.Write(CorrelationId, "ERROR", context.GetMethodInfo(), message);
         }
 
         /// <summary>

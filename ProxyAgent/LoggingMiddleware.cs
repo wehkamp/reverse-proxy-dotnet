@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Autofac;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics;
 using Microsoft.Azure.IoTSolutions.ReverseProxy.Runtime;
@@ -12,7 +14,7 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy
     public class LoggingMiddleware
     {
         private readonly RequestDelegate next;
-        private readonly ILogger log;
+        private ILogger log;
         private readonly IConfig config;
 
         public LoggingMiddleware(
@@ -29,11 +31,11 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy
         {
             try
             {
-
                 if (context.Request.Headers.TryGetValue(
                     config.CorrelationHeader, out StringValues correlationId))
                 {
                     context.TraceIdentifier = correlationId;
+                    // TODO add correlation ID to logger here
                 }
 
                 // add correlationID to response header

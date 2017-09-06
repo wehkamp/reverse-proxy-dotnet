@@ -3,9 +3,13 @@
 using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Autofac.Core.Lifetime;
+using Autofac.Core.Registration;
+using Autofac.Util;
 using Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics;
 using Microsoft.Azure.IoTSolutions.ReverseProxy.Runtime;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Builder;
 
 namespace Microsoft.Azure.IoTSolutions.ReverseProxy
 {
@@ -43,9 +47,9 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy
             var config = new Config(new ConfigData());
             builder.RegisterInstance(config).As<IConfig>().SingleInstance();
 
-            // Instantiate only one logger
+            // Instantiate one logger per request
             var logger = new Logger(Uptime.ProcessId, config.LogLevel);
-            builder.RegisterInstance(logger).As<ILogger>().SingleInstance();
+            builder.RegisterInstance(logger).As<ILogger>().InstancePerLifetimeScope();
 
             // By default the DI container create new objects when injecting
             // dependencies. To improve performance we reuse some instances,

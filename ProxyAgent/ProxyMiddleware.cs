@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy
             }
             catch (Exception e)
             {
-                this.log.Error(context.TraceIdentifier, "Proxied request failed", () => new { e });
+                this.log.Error("Proxied request failed", () => new { e });
             }
         }
     }
