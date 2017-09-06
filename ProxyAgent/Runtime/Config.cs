@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.Runtime
         int MaxPayloadSize { get; }
         bool ConfigStatus { get; }
         LogLevel LogLevel { get; }
+        string CorrelationHeader { get; }
     }
 
     /// <summary>Web application configuration</summary>
@@ -26,16 +27,19 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.Runtime
         private const string MaxPayloadSizeKey = ApplicationKey + "maxPayloadSize";
         private const string ConfigStatusKey = ApplicationKey + "configStatus";
         private const string LogLevelKey = ApplicationKey + "loglevel";
+        private const string LogCorrelationHeaderKey = ApplicationKey + "logCorrelationHeader";
 
         public string Endpoint { get; }
         public int MaxPayloadSize { get; }
         public bool ConfigStatus { get; }
         public LogLevel LogLevel { get; }
+        public string CorrelationHeader { get; }
 
         public Config(IConfigData configData)
         {
             Enum.TryParse(configData.GetString(LogLevelKey), out LogLevel logLevel);
             this.LogLevel = logLevel;
+            this.CorrelationHeader = configData.GetString(LogCorrelationHeaderKey);
 
             this.ConfigStatus = configData.GetBool(ConfigStatusKey);
             this.MaxPayloadSize = configData.GetInt(MaxPayloadSizeKey);

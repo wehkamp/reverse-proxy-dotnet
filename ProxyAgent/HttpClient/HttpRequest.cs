@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
+using Microsoft.Azure.IoTSolutions.ReverseProxy.Runtime;
 
 namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
 {
@@ -62,21 +63,21 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
 
         public HttpContent Content => this.requestContent.Content;
 
-        public HttpRequest()
+        public HttpRequest(IConfig config)
         {
-            this.Headers = new HttpHeaders();
+            this.Headers = new HttpHeaders(config);
         }
 
-        public HttpRequest(Uri uri)
+        public HttpRequest(Uri uri, IConfig config)
         {
             this.Uri = uri;
-            this.Headers = new HttpHeaders();
+            this.Headers = new HttpHeaders(config);
         }
 
-        public HttpRequest(string uri)
+        public HttpRequest(string uri, IConfig config)
         {
             this.SetUriFromString(uri);
-            this.Headers = new HttpHeaders();
+            this.Headers = new HttpHeaders(config);
         }
 
         public bool UsesSsl()

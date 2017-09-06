@@ -4,6 +4,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics;
+using Microsoft.Azure.IoTSolutions.ReverseProxy.Runtime;
 
 namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
 {
@@ -27,10 +28,14 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
     public class HttpClient : IHttpClient
     {
         private readonly ILogger log;
+        private readonly IConfig config;
 
-        public HttpClient(ILogger logger)
+        public HttpClient(
+            ILogger logger,
+            IConfig config)
         {
             this.log = logger;
+            this.config = config;
         }
 
         public async Task<IHttpResponse> GetAsync(IHttpRequest request)
@@ -84,7 +89,10 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
                 SetContent(request, httpMethod, httpRequest);
                 SetHeaders(request, httpRequest);
 
-                this.log.Debug("Sending request", () => new { httpMethod, request.Uri, request.Options });
+                this.log.Debug(
+                    request.Headers.CorrelationId,
+                    "Sending request",
+                    () => new { httpMethod, request.Uri, request.Options });
 
                 try
                 {
@@ -92,7 +100,7 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
                     {
                         if (request.Options.EnsureSuccess) response.EnsureSuccessStatusCode();
 
-                        var headers = new HttpHeaders();
+                        var headers = new HttpHeaders(this.config);
                         foreach (var header in response.Headers)
                         {
                             headers.Add(header.Key, header.Value);
@@ -118,7 +126,10 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
                         errorMessage += " - " + e.InnerException.Message;
                     }
 
-                    this.log.Error("Request failed", () => new { errorMessage, e });
+                    this.log.Error(
+                        request.Headers.CorrelationId,
+                        "Request failed",
+                        () => new { errorMessage, e });
 
                     return new HttpResponse
                     {
@@ -128,10 +139,14 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
                 }
                 catch (TaskCanceledException e)
                 {
-                    this.log.Error("Request failed",
+                    this.log.Error(
+                        request.Headers.CorrelationId,
+                        "Request failed",
                         () => new
                         {
-                            Message = e.Message + " The request timed out, the endpoint might be unreachable.",
+                            Message = e.Message +
+                                " The request timed out, " +
+                                "the endpoint might be unreachable.",
                             e
                         });
 
@@ -143,7 +158,10 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient
                 }
                 catch (Exception e)
                 {
-                    this.log.Error("Request failed", () => new { e.Message, e });
+                    this.log.Error(
+                        request.Headers.CorrelationId,
+                        "Request failed",
+                        () => new { e.Message, e });
 
                     return new HttpResponse
                     {

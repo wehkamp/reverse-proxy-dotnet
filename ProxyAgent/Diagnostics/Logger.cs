@@ -19,18 +19,18 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics
         // The following 4 methods allow to log a message, capturing the context
         // (i.e. the method where the log message is generated)
 
-        void Debug(string message, Action context);
-        void Info(string message, Action context);
-        void Warn(string message, Action context);
-        void Error(string message, Action context);
+        void Debug(string correlationId, string message, Action context);
+        void Info(string correlationId, string message, Action context);
+        void Warn(string correlationId, string message, Action context);
+        void Error(string correlationId, string message, Action context);
 
         // The following 4 methods allow to log a message and some data,
         // capturing the context (i.e. the method where the log message is generated)
 
-        void Debug(string message, Func<object> context);
-        void Info(string message, Func<object> context);
-        void Warn(string message, Func<object> context);
-        void Error(string message, Func<object> context);
+        void Debug(string correlationId, string message, Func<object> context);
+        void Info(string correlationId, string message, Func<object> context);
+        void Warn(string correlationId, string message, Func<object> context);
+        void Error(string correlationId, string message, Func<object> context);
     }
 
     public class Logger : ILogger
@@ -46,70 +46,82 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics
 
         // The following 4 methods allow to log a message, capturing the context
         // (i.e. the method where the log message is generated)
-        public void Debug(string message, Action context)
+        public void Debug(string correlationId, string message, Action context)
         {
             if (this.loggingLevel > LogLevel.Debug) return;
-            this.Write("DEBUG", context.GetMethodInfo(), message);
+            this.Write(correlationId, "DEBUG", context.GetMethodInfo(), message);
         }
 
-        public void Info(string message, Action context)
+        public void Info(string correlationId, string message, Action context)
         {
             if (this.loggingLevel > LogLevel.Info) return;
-            this.Write("INFO", context.GetMethodInfo(), message);
+            this.Write(correlationId, "INFO", context.GetMethodInfo(), message);
         }
 
-        public void Warn(string message, Action context)
+        public void Warn(string correlationId, string message, Action context)
         {
             if (this.loggingLevel > LogLevel.Warn) return;
-            this.Write("WARN", context.GetMethodInfo(), message);
+            this.Write(correlationId, "WARN", context.GetMethodInfo(), message);
         }
 
-        public void Error(string message, Action context)
+        public void Error(string correlationId, string message, Action context)
         {
             if (this.loggingLevel > LogLevel.Error) return;
-            this.Write("ERROR", context.GetMethodInfo(), message);
+            this.Write(correlationId, "ERROR", context.GetMethodInfo(), message);
         }
 
         // The following 4 methods allow to log a message and some data,
         // capturing the context (i.e. the method where the log message is generated)
-        public void Debug(string message, Func<object> context)
+        public void Debug(
+            string correlationId,
+            string message,
+            Func<object> context)
         {
             if (this.loggingLevel > LogLevel.Debug) return;
 
             if (!string.IsNullOrEmpty(message)) message += ", ";
             message += Serialization.Serialize(context.Invoke());
 
-            this.Write("DEBUG", context.GetMethodInfo(), message);
+            this.Write(correlationId, "DEBUG", context.GetMethodInfo(), message);
         }
 
-        public void Info(string message, Func<object> context)
+        public void Info(
+            string correlationId,
+            string message,
+            Func<object> context)
         {
             if (this.loggingLevel > LogLevel.Info) return;
 
             if (!string.IsNullOrEmpty(message)) message += ", ";
             message += Serialization.Serialize(context.Invoke());
 
-            this.Write("INFO", context.GetMethodInfo(), message);
+            this.Write(correlationId, "INFO", context.GetMethodInfo(), message);
         }
 
-        public void Warn(string message, Func<object> context)
+        public void Warn(
+            string correlationId,
+            string message,
+            Func<object> context)
         {
             if (this.loggingLevel > LogLevel.Warn) return;
 
             if (!string.IsNullOrEmpty(message)) message += ", ";
             message += Serialization.Serialize(context.Invoke());
 
-            this.Write("WARN", context.GetMethodInfo(), message);
+            this.Write(correlationId, "WARN", context.GetMethodInfo(), message);
         }
 
-        public void Error(string message, Func<object> context)
+        public void Error(
+            string correlationId,
+            string message,
+            Func<object> context)
         {
             if (this.loggingLevel > LogLevel.Error) return;
 
             if (!string.IsNullOrEmpty(message)) message += ", ";
             message += Serialization.Serialize(context.Invoke());
 
-            this.Write("ERROR", context.GetMethodInfo(), message);
+            this.Write(correlationId, "ERROR", context.GetMethodInfo(), message);
         }
 
         /// <summary>
@@ -117,7 +129,11 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics
         /// and shortening the class name and method name (e.g. removing
         /// symbols specific to .NET internal implementation)
         /// </summary>
-        private void Write(string level, MethodInfo context, string text)
+        private void Write(
+            string correlationId,
+            string level,
+            MethodInfo context,
+            string text)
         {
             // Extract the Class Name from the context
             var classname = "";
@@ -134,7 +150,7 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics
             methodname = methodname.Split(new[] { '<' }, 2).Last();
 
             var time = DateTimeOffset.UtcNow.ToString("u");
-            Console.WriteLine($"[{this.processId}][{time}][{level}][{classname}:{methodname}] {text}");
+            Console.WriteLine($"[{this.processId}][{correlationId}][{time}][{level}][{classname}:{methodname}] {text}");
         }
     }
 }
