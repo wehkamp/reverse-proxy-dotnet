@@ -2,6 +2,7 @@
 
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace Microsoft.Azure.IoTSolutions.ReverseProxy
 {
@@ -14,8 +15,12 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy
                 {
                     options.AddServerHeader = false;
                 })
-                .UseLibuv(options => options.ThreadCount = System.Environment.ProcessorCount)
                 .UseContentRoot(Directory.GetCurrentDirectory())
+                .ConfigureAppConfiguration((builderContext, config) => {
+                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                    config.AddJsonFile($"appsettings.{builderContext.HostingEnvironment.EnvironmentName}.json", optional: true);
+                    config.AddEnvironmentVariables();
+                })
                 .UseIISIntegration()
                 .UseStartup<Startup>()
                 .Build();

@@ -60,15 +60,20 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy.Runtime
         private const string STATUS_ENDPOINT_ENABLED_KEY = APPLICATION_KEY + "statusEndpointEnabled";
         private const string LOG_LEVEL_KEY = APPLICATION_KEY + "loglevel";
 
-        public string Endpoint { get; }
-        public string SslCertThumbprint { get; }
-        public bool RedirectHttpToHttps { get; }
-        public bool StrictTransportSecurityEnabled { get; }
-        public int StrictTransportSecurityPeriod { get; }
-        public int MaxPayloadSize { get; }
-        public bool StatusEndpointEnabled { get; }
-        public LogLevel LogLevel { get; }
+        public string Endpoint { get; set; }
+        public string SslCertThumbprint { get; set; }
+        public bool RedirectHttpToHttps { get; set; }
+        public bool StrictTransportSecurityEnabled { get; set; }
+        public int StrictTransportSecurityPeriod { get; set; }
+        public int MaxPayloadSize { get; set; }
+        public bool StatusEndpointEnabled { get; set; }
+        public LogLevel LogLevel { get; set; }
 
+        public Config()
+        {
+            
+        }
+        
         public Config(IConfigData configData)
         {
             Enum.TryParse(configData.GetString(LOG_LEVEL_KEY, LOG_LEVEL_DEFAULT.ToString()), out LogLevel logLevel);

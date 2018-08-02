@@ -1,47 +1,42 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-using System;
 using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.IoTSolutions.ReverseProxy.HttpClient;
 using Microsoft.Azure.IoTSolutions.ReverseProxy.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics;
 using ILogger = Microsoft.Azure.IoTSolutions.ReverseProxy.Diagnostics.ILogger;
 
 namespace Microsoft.Azure.IoTSolutions.ReverseProxy
 {
     public class Startup
     {
-        // Initialized in `ConfigureServices`
-        public IContainer ApplicationContainer { get; private set; }
-
-        public Startup(IHostingEnvironment env)
+        public Startup(IConfiguration configuration)
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddIniFile("appsettings.ini", optional: false, reloadOnChange: false);
-            this.Configuration = builder.Build();
+            this.Configuration = configuration;
         }
 
-        public IConfigurationRoot Configuration { get; }
+        public IConfiguration Configuration { get; }
 
         // This is where you register dependencies, add services to the
         // container. This method is called by the runtime, before the
         // Configure method below.
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
-
-            this.ApplicationContainer = DependencyResolution.Setup(services);
-
-            // Print some useful information at bootstrap time
-            PrintBootstrapInfo(this.ApplicationContainer);
-
-            // Create the IServiceProvider based on the container
-            return new AutofacServiceProvider(this.ApplicationContainer);
+            services.AddOptions()
+                .Configure<Config>(this.Configuration.GetSection("Proxy"));
+            
+            services.AddTransient<ILogger, Logger>(p => new Logger(Uptime.ProcessId, p.GetService<IConfig>().LogLevel));
+            
+            services.AddTransient<IHttpClient>(p => new HttpClient.HttpClient(p.GetService<ILogger>(), p.GetService<IConfig>()));
+            
+            services.AddTransient<IConfig>(p => p.GetService<IOptions<Config>>().Value);
+            services.AddTransient<IProxy>(p => new Proxy(p.GetService<IHttpClient>(), p.GetService<IConfig>(), p.GetService<ILogger>()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -58,13 +53,7 @@ namespace Microsoft.Azure.IoTSolutions.ReverseProxy
             // app.UseDefaultFiles();
             // app.UseStaticFiles();
 
-            app.UseMvc();
-
             app.UseMiddleware<ProxyMiddleware>();
-
-            // If you want to dispose of resources that have been resolved in the
-            // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(() => this.ApplicationContainer.Dispose());
         }
 
         private static void PrintBootstrapInfo(IContainer container)
